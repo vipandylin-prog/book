@@ -177,7 +177,7 @@
     // ==========================================
     // 1. Supabase 專案設定（已修正語法）
     // ==========================================
-    const SUPABASE_URL = 'https://jtvbbpopoiyxyrtouirw.supabase.co';
+    const SUPABASE_URL ='https://jtvbbpopoiyxyrtouirw.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_BKzjQpQC-Mz2jaPhi2WsmQ_p4oKfReI';
 
     let session = JSON.parse(localStorage.getItem('sb_session') || 'null');
