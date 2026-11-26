@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>校園二手教科書交換平台</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); line-height: 1.5; }
+    
+    /* 導覽列 */
+    nav { background: var(--primary); color: #fff; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .container { max-width: 1080px; margin: 0 auto; padding: 0 1rem; }
+    .nav-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .nav-title { font-size: 1.25rem; font-weight: 700; }
+    
+    /* 按鈕與輸入框 */
+    button { cursor: pointer; border: none; border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 600; transition: 0.2s; }
+    .btn-white { background: #fff; color: var(--primary); }
+    .btn-white:hover { background: #eff6ff; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { background: #f1f5f9; }
+    .btn-danger { background: #fee2e2; color: #dc2626; font-size: 0.8rem; padding: 0.35rem 0.7rem; }
+    
+    input, select { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; background: #fff; }
+    input:focus, select:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+    /* 搜尋區塊 */
+    .filter-box { background: var(--card-bg); padding: 1.25rem; border-radius: 10px; border: 1px solid var(--border); margin: 1.5rem 0; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem; }
+    @media (max-width: 768px) { .filter-box { grid-template-columns: 1fr; } }
+
+    /* 書籍卡片網格 */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; padding-bottom: 3rem; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .dept-tag { font-size: 0.8rem; font-weight: 600; color: var(--primary); }
+    .badge { font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 600; }
+    .badge-sell { background: #dcfce7; color: #15803d; }
+    .badge-buy { background: #fef3c7; color: #b45309; }
+    .badge-free { background: #e0f2fe; color: #0369a1; }
+    .book-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .book-meta { font-size: 0.88rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .card-footer { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+    .price { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+
+    /* 原生彈窗 (Dialog) */
+    dialog { border: none; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 440px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    dialog::backdrop { background: rgba(15, 23, 42, 0.5); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 0.85rem; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="container nav-inner">
+      <div class="nav-title">📚 校園二手教科書交換平台</div>
+      <div id="nav-actions"></div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- 搜尋篩選列 -->
+    <section class="filter-box">
+      <input type="text" id="search-input" placeholder="搜尋書名、課程名稱或授課教授..." />
+      <select id="dept-filter">
+        <option value="">所有系所 / 分類</option>
+        <option value="通識課程">通識課程</option>
+        <option value="資訊工程學系">資訊工程學系</option>
+        <option value="電機工程學系">電機工程學系</option>
+        <option value="企業管理學系">企業管理學系</option>
+        <option value="其他系所">其他系所</option>
+      </select>
+      <select id="type-filter">
+        <option value="">全部交易類型</option>
+        <option value="sell">出售</option>
+        <option value="buy">徵求</option>
+        <option value="free">免費贈送</option>
+      </select>
+    </section>
+
+    <!-- 書籍列表 -->
+    <section id="books-grid" class="grid">
+      <p style="color: var(--muted);">載入資料中...</p>
+    </section>
+  </main>
+
+  <!-- 登入彈窗 -->
+  <dialog id="login-dialog">
+    <div class="modal-header">
+      <h3>學校信箱驗證登入</h3>
+      <button class="btn-outline" onclick="document.getElementById('login-dialog').close()">✕</button>
+    </div>
+    <div id="step-email">
+      <div class="form-group">
+        <label>請輸入學校信箱（限 .edu.tw）</label>
+        <input type="email" id="login-email" placeholder="s1101234@gm.school.edu.tw" />
+      </div>
+      <button class="btn-primary" style="width: 100%;" onclick="sendOtp()">寄送 6 位數驗證碼</button>
+    </div>
+    <div id="step-otp" class="hidden">
+      <div class="form-group">
+        <label>請輸入信箱收到的 6 位數驗證碼</label>
+        <input type="text" id="login-otp" placeholder="123456" maxlength="6" />
+      </div>
+      <button class="btn-primary" style="width: 100%;" onclick="verifyOtp()">確認登入</button>
+    </div>
+  </dialog>
+
+  <!-- 刊登書籍彈窗 -->
+  <dialog id="post-dialog">
+    <div class="modal-header">
+      <h3>刊登二手教科書</h3>
+      <button class="btn-outline" onclick="document.getElementById('post-dialog').close()">✕</button>
+    </div>
+    <form id="post-form" onsubmit="submitBook(event)">
+      <div class="form-group">
+        <label>交易類型 *</label>
+        <select id="book-type" required>
+          <option value="sell">出售</option>
+          <option value="buy">徵求</option>
+          <option value="free">免費贈送</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>書名 *</label>
+        <input type="text" id="book-title" required placeholder="例如：Calculus (9th Edition)" />
+      </div>
+      <div class="form-group">
+        <label>適用課程名稱 *</label>
+        <input type="text" id="book-course" required placeholder="例如：微積分(一)" />
+      </div>
+      <div class="form-group">
+        <label>授課教授</label>
+        <input type="text" id="book-prof" placeholder="例如：王大明" />
+      </div>
+      <div class="form-group">
+        <label>系所分類 *</label>
+        <select id="book-dept" required>
+          <option value="通識課程">通識課程</option>
+          <option value="資訊工程學系">資訊工程學系</option>
+          <option value="電機工程學系">電機工程學系</option>
+          <option value="企業管理學系">企業管理學系</option>
+          <option value="其他系所">其他系所</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>價格（新台幣，贈送請填 0）*</label>
+        <input type="number" id="book-price" min="0" value="300" required />
+      </div>
+      <div class="form-group">
+        <label>書況說明</label>
+        <input type="text" id="book-condition" placeholder="例如：八成新、有少許鉛筆筆記" />
+      </div>
+      <div class="form-group">
+        <label>聯絡方式（LINE ID 或 IG 帳號）*</label>
+        <input type="text" id="book-contact" required placeholder="例如：LINE: student123" />
+      </div>
+      <button type="submit" class="btn-primary" style="width: 100%;">送出刊登</button>
+    </form>
+  </dialog>
+
+  <script>
+    // ==========================================
+    // 1. Supabase 專案設定（已修正語法）
+    // ==========================================
+    const SUPABASE_URL = 'https://jtvbbpopoiyxyrtouirw.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_BKzjQpQC-Mz2jaPhi2WsmQ_p4oKfReI';
+
+    let session = JSON.parse(localStorage.getItem('sb_session') || 'null');
+    let allBooks = [];
+
+    async function sbFetch(path, options = {}) {
+      const headers = {
+        'apikey': SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        ...(options.headers || {})
+      };
+      const res = await fetch(`${SUPABASE_URL}${path}`, { ...options, headers });
+      if (res.status === 204) return null;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.msg || data.message || data.error_description || '請求失敗');
+      return data;
+    }
+
+    // ==========================================
+    // 2. 身份驗證（學校信箱 OTP 登入）
+    // ==========================================
+    function renderNav() {
+      const nav = document.getElementById('nav-actions');
+      if (session?.user) {
+        nav.innerHTML = `
+          <span style="font-size: 0.85rem; margin-right: 0.5rem;">${session.user.email}</span>
+          <button class="btn-white" onclick="document.getElementById('post-dialog').showModal()">+ 刊登書籍</button>
+          <button class="btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.4);" onclick="logout()">登出</button>
+        `;
+      } else {
+        nav.innerHTML = `
+          <button class="btn-white" onclick="openLogin()">學校信箱登入 / 刊登</button>
+        `;
+      }
+    }
+
+    function openLogin() {
+      document.getElementById('step-email').classList.remove('hidden');
+      document.getElementById('step-otp').classList.add('hidden');
+      document.getElementById('login-dialog').showModal();
+    }
+
+    async function sendOtp() {
+      const email = document.getElementById('login-email').value.trim();
+      if (!email.endsWith('.edu.tw')) {
+        alert('請輸入有效的學校信箱（結尾須為 .edu.tw）');
+        return;
+      }
+      try {
+        await sbFetch('/auth/v1/otp', {
+          method: 'POST',
+          body: JSON.stringify({ email })
+        });
+        alert('驗證碼已寄出，請至學校信箱收信！');
+        document.getElementById('step-email').classList.add('hidden');
+        document.getElementById('step-otp').classList.remove('hidden');
+      } catch (err) {
+        alert('寄送失敗：' + err.message);
+      }
+    }
+
+    async function verifyOtp() {
+      const email = document.getElementById('login-email').value.trim();
+      const token = document.getElementById('login-otp').value.trim();
+      try {
+        const data = await sbFetch('/auth/v1/verify', {
+          method: 'POST',
+          body: JSON.stringify({ email, token, type: 'email' })
+        });
+        session = data;
+        localStorage.setItem('sb_session', JSON.stringify(session));
+        document.getElementById('login-dialog').close();
+        renderNav();
+        renderBooks(allBooks);
+      } catch (err) {
+        alert('驗證失敗：' + err.message);
+      }
+    }
+
+    function logout() {
+      session = null;
+      localStorage.removeItem('sb_session');
+      renderNav();
+      renderBooks(allBooks);
+    }
+
+    // ==========================================
+    // 3. 書籍讀取、新增與下架（REST API）
+    // ==========================================
+    async function loadBooks() {
+      try {
+        allBooks = await sbFetch('/rest/v1/books?is_sold=eq.false&order=created_at.desc');
+        filterBooks();
+      } catch (err) {
+        document.getElementById('books-grid').innerHTML = `<p style="color:red;">載入失敗：${err.message}</p>`;
+      }
+    }
+
+    async function submitBook(e) {
+      e.preventDefault();
+      if (!session?.user) return alert('請先登入');
+
+      const payload = {
+        user_id: session.user.id,
+        type: document.getElementById('book-type').value,
+        title: document.getElementById('book-title').value.trim(),
+        course_name: document.getElementById('book-course').value.trim(),
+        professor: document.getElementById('book-prof').value.trim(),
+        department: document.getElementById('book-dept').value,
+        price: Number(document.getElementById('book-price').value),
+        condition: document.getElementById('book-condition').value.trim(),
+        contact_info: document.getElementById('book-contact').value.trim()
+      };
+
+      try {
+        await sbFetch('/rest/v1/books', {
+          method: 'POST',
+          headers: { 'Prefer': 'return=minimal' },
+          body: JSON.stringify(payload)
+        });
+        document.getElementById('post-form').reset();
+        document.getElementById('post-dialog').close();
+        await loadBooks();
+      } catch (err) {
+        alert('刊登失敗（若憑證過期請重新登入）：' + err.message);
+      }
+    }
+
+    async function markAsSold(bookId) {
+      if (!confirm('確定要將此書籍標記為「已售出 / 下架」嗎？')) return;
+      try {
+        await sbFetch(`/rest/v1/books?id=eq.${bookId}`, {
+          method: 'PATCH',
+          headers: { 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ is_sold: true })
+        });
+        await loadBooks();
+      } catch (err) {
+        alert('下架失敗：' + err.message);
+      }
+    }
+
+    // ==========================================
+    // 4. 前端搜尋與畫面渲染
+    // ==========================================
+    function renderBooks(books) {
+      const grid = document.getElementById('books-grid');
+      if (!books.length) {
+        grid.innerHTML = '<p style="color: var(--muted);">目前沒有符合條件的書籍。</p>';
+        return;
+      }
+
+      const typeMap = {
+        sell: { text: '出售', cls: 'badge-sell' },
+        buy: { text: '徵求', cls: 'badge-buy' },
+        free: { text: '贈送', cls: 'badge-free' }
+      };
+
+      grid.innerHTML = books.map(b => {
+        const badge = typeMap[b.type] || { text: b.type, cls: '' };
+        const isOwner = session?.user?.id === b.user_id;
+        return `
+          <article class="card">
+            <div>
+              <div class="card-header">
+                <span class="dept-tag">${escapeHtml(b.department)}</span>
+                <span class="badge ${badge.cls}">${badge.text}</span>
+              </div>
+              <h2 class="book-title">${escapeHtml(b.title)}</h2>
+              <p class="book-meta">📖 課程：${escapeHtml(b.course_name)} ${b.professor ? `(${escapeHtml(b.professor)})` : ''}</p>
+              <p class="book-meta">📝 書況：${escapeHtml(b.condition || '未註明')}</p>
+            </div>
+            <div class="card-footer">
+              <span class="price">${b.type === 'free' ? '免費' : `NT$ ${b.price}`}</span>
+              <div style="display:flex; gap:0.4rem;">
+                ${isOwner ? `<button class="btn-danger" onclick="markAsSold('${b.id}')">下架</button>` : ''}
+                <button class="btn-outline" onclick="copyText('${escapeHtml(b.contact_info)}')">複製聯絡資訊</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function filterBooks() {
+      const kw = document.getElementById('search-input').value.toLowerCase();
+      const dept = document.getElementById('dept-filter').value;
+      const type = document.getElementById('type-filter').value;
+
+      const filtered = allBooks.filter(b => {
+        const matchKw = b.title.toLowerCase().includes(kw) ||
+                        b.course_name.toLowerCase().includes(kw) ||
+                        (b.professor && b.professor.toLowerCase().includes(kw));
+        return matchKw && (!dept || b.department === dept) && (!type || b.type === type);
+      });
+      renderBooks(filtered);
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text);
+      alert('已複製聯絡資訊：' + text);
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
+    }
+
+    document.getElementById('search-input').addEventListener('input', filterBooks);
+    document.getElementById('dept-filter').addEventListener('change', filterBooks);
+    document.getElementById('type-filter').addEventListener('change', filterBooks);
+
+    renderNav();
+    loadBooks();
+  </script>
+</body>
+</html>
