@@ -137,7 +137,7 @@
       <h3>學生帳號登入 / 註冊</h3>
       <button class="btn-outline" onclick="document.getElementById('login-dialog').close()">✕</button>
     </div>
-    <p class="hint" style="margin-bottom: 1rem;">為保護同學隱私，須登入大專院校信箱 (.edu.tw) 後才能預約書籍與在站內聯絡賣家。</p>
+    <p class="hint" style="margin-bottom: 1rem;">為保護同學隱私，須登入大專院校信箱 (.edu.tw) 後才能預約書籍與開啟一對一私密對話。</p>
     <div class="form-group">
       <label>學校信箱 (.edu.tw)</label>
       <input type="email" id="auth-email" placeholder="例如：s1101234@nkust.edu.tw" />
@@ -222,15 +222,16 @@
     </form>
   </dialog>
 
-  <!-- 站內聯絡對話彈窗 -->
+  <!-- 站內一對一私密聯絡對話彈窗 -->
   <dialog id="chat-dialog">
     <div class="modal-header">
       <div>
-        <h3 id="chat-book-title" style="font-size: 1.05rem;">站內聯絡</h3>
+        <h3 id="chat-book-title" style="font-size: 1.05rem;">私密聯絡</h3>
         <p id="chat-sub-info" class="hint"></p>
       </div>
       <button class="btn-outline" onclick="closeChatModal()">✕</button>
     </div>
+    <p class="hint" style="margin-bottom: 0.6rem;">🔒 此為一對一私密對話，僅賣家與預約買家可見。</p>
     <div id="chat-messages" class="chat-box">
       <p style="color: var(--muted); text-align: center; margin-top: 2rem;">載入訊息中...</p>
     </div>
@@ -506,13 +507,13 @@
       }
     }
 
-    // 買家一鍵預約（符合 Rules 情境 B）
+    // 買家一鍵預約（符合 Rules 情境 B，預約後才解鎖一對一私密對話）
     async function reserveBook(bookId) {
       if (!currentUser) return openLogin();
       const book = allBooks.find(b => b.id === bookId);
       if (!book) return;
 
-      if (!confirm(`確定要預約「${book.title}」嗎？預約後將自動為你開啟站內對話聯絡賣家。`)) return;
+      if (!confirm(`確定要預約「${book.title}」嗎？預約後將自動開啟一對一私密對話聯絡賣家。`)) return;
 
       try {
         await firestoreFetch(
@@ -544,6 +545,8 @@
       if (!confirm("確定要取消預約嗎？取消後其他同學將可以重新預約此書。")) return;
 
       try {
+        // 先寫入取消通知訊息，再清空 buyerId（否則清空 buyerId 後即失去寫入該書訊息的權限）
+        await postMessageToFirestore(bookId, `（系統通知：買家已取消預約）`);
         await firestoreFetch(
           `${FIRESTORE_URL}/books/${bookId}?updateMask.fieldPaths=status&updateMask.fieldPaths=buyerId&updateMask.fieldPaths=buyerEmail`,
           {
@@ -557,7 +560,6 @@
             })
           }
         );
-        await postMessageToFirestore(bookId, `（系統通知：買家已取消預約）`);
         alert("已取消預約！");
         await loadBooks();
       } catch (err) {
@@ -571,6 +573,7 @@
       if (!confirm("確定要取消買家保留，將書籍重新開放給所有人預約嗎？")) return;
 
       try {
+        await postMessageToFirestore(bookId, `（系統通知：賣家已重新釋出此書籍）`);
         await firestoreFetch(
           `${FIRESTORE_URL}/books/${bookId}?updateMask.fieldPaths=status&updateMask.fieldPaths=buyerId&updateMask.fieldPaths=buyerEmail`,
           {
@@ -610,7 +613,7 @@
     }
 
     // ==========================================
-    // 5. 站內即時留言對話（已修正帶入登入 Token 讀取）
+    // 5. 站內一對一私密留言對話
     // ==========================================
     async function openChatModal(bookId) {
       if (!currentUser) return openLogin();
@@ -620,7 +623,7 @@
       const isOwner = currentUser.uid === activeChatBook.ownerId;
       document.getElementById('chat-book-title').textContent = `💬 ${activeChatBook.title}`;
       document.getElementById('chat-sub-info').textContent = isOwner
-        ? (activeChatBook.buyerEmail ? `預約買家：${activeChatBook.buyerEmail}` : '目前尚無人預約，可在此回覆同學提問')
+        ? `預約買家：${activeChatBook.buyerEmail}`
         : `刊登同學：${activeChatBook.ownerEmail}`;
 
       document.getElementById('chat-dialog').showModal();
@@ -754,12 +757,13 @@
           statusNoticeHtml = `<div class="reserved-info">✅ 你已成功預約此書，請點下方「站內聯絡」與賣家約面交</div>`;
         }
 
+        // 操作按鈕邏輯（僅在預約後對買賣雙方開放一對一聊天室）
         let actionsHtml = '';
         if (!isLoggedIn) {
           actionsHtml = `<button class="btn-lock" onclick="openLogin()">🔒 登入預約與聯絡賣家</button>`;
         } else if (isOwner) {
           actionsHtml = `
-            <button class="btn-primary" onclick="openChatModal('${b.id}')">💬 站內聯絡</button>
+            ${b.status === 'reserved' ? `<button class="btn-primary" onclick="openChatModal('${b.id}')">💬 站內聯絡</button>` : ''}
             ${b.status === 'reserved' ? `<button class="btn-outline" onclick="resetBookStatus('${b.id}')">釋出</button>` : ''}
             <button class="btn-danger" onclick="takeDownBook('${b.id}')">下架</button>
           `;
@@ -771,10 +775,7 @@
         } else if (isReservedByOther) {
           actionsHtml = `<button class="btn-outline" disabled>已被其他同學預約</button>`;
         } else {
-          actionsHtml = `
-            <button class="btn-outline" onclick="openChatModal('${b.id}')">💬 提問</button>
-            <button class="btn-success" onclick="reserveBook('${b.id}')">📌 預約此書</button>
-          `;
+          actionsHtml = `<button class="btn-success" onclick="reserveBook('${b.id}')">📌 預約此書</button>`;
         }
 
         return `
