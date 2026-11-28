@@ -442,7 +442,6 @@
               ownerEmail: f.ownerEmail?.stringValue || '',
               buyerId: f.buyerId?.stringValue || '',
               buyerEmail: f.buyerEmail?.stringValue || '',
-              messages: f.messages?.stringValue || '[]',
               createdAt: Number(f.createdAt?.integerValue || 0)
             };
           }).filter(b => b.status === 'available' || b.status === 'reserved');
@@ -507,7 +506,7 @@
       }
     }
 
-    // 買家一鍵預約（完全符合 Rules 情境 B：僅更新 status, buyerId, buyerEmail）
+    // 買家一鍵預約（符合 Rules 情境 B）
     async function reserveBook(bookId) {
       if (!currentUser) return openLogin();
       const book = allBooks.find(b => b.id === bookId);
@@ -530,7 +529,6 @@
           }
         );
 
-        // 自動發送第一則預約通知訊息給賣家
         await postMessageToFirestore(bookId, `您好，我已預約這本「${book.title}」，請問什麼時候方便面交？`);
         await loadBooks();
         openChatModal(bookId);
@@ -540,7 +538,7 @@
       }
     }
 
-    // 原預約買家取消預約（完全符合 Rules 情境 C）
+    // 原預約買家取消預約（符合 Rules 情境 C）
     async function cancelReservation(bookId) {
       if (!currentUser) return;
       if (!confirm("確定要取消預約嗎？取消後其他同學將可以重新預約此書。")) return;
@@ -567,7 +565,7 @@
       }
     }
 
-    // 賣家重新開放預約（若買家爽約，賣家可恢復為 available，符合 Rules 情境 A）
+    // 賣家重新開放預約（符合 Rules 情境 A）
     async function resetBookStatus(bookId) {
       if (!currentUser) return;
       if (!confirm("確定要取消買家保留，將書籍重新開放給所有人預約嗎？")) return;
@@ -612,7 +610,7 @@
     }
 
     // ==========================================
-    // 5. 站內即時留言對話（直接在本網站聯絡賣家）
+    // 5. 站內即時留言對話（已修正帶入登入 Token 讀取）
     // ==========================================
     async function openChatModal(bookId) {
       if (!currentUser) return openLogin();
@@ -628,7 +626,6 @@
       document.getElementById('chat-dialog').showModal();
       await fetchChatMessages();
 
-      // 每 4 秒自動更新一次對話內容
       clearInterval(chatPollTimer);
       chatPollTimer = setInterval(fetchChatMessages, 4000);
     }
@@ -644,8 +641,7 @@
       if (!activeChatBook) return;
       const box = document.getElementById('chat-messages');
       try {
-        const res = await fetch(`${FIRESTORE_URL}/books/${activeChatBook.id}/messages?pageSize=100`);
-        const data = await res.json();
+        const data = await firestoreFetch(`${FIRESTORE_URL}/books/${activeChatBook.id}/messages?pageSize=100`);
         const msgs = (data.documents || []).map(doc => {
           const f = doc.fields || {};
           return {
@@ -758,7 +754,6 @@
           statusNoticeHtml = `<div class="reserved-info">✅ 你已成功預約此書，請點下方「站內聯絡」與賣家約面交</div>`;
         }
 
-        // 操作按鈕區邏輯
         let actionsHtml = '';
         if (!isLoggedIn) {
           actionsHtml = `<button class="btn-lock" onclick="openLogin()">🔒 登入預約與聯絡賣家</button>`;
