@@ -6,8 +6,8 @@
   <title>校園二手教科書交換平台</title>
   <style>
     :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --text: #1e293b;
@@ -25,12 +25,15 @@
     
     /* 按鈕與輸入框 */
     button { cursor: pointer; border: none; border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 600; transition: 0.2s; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-white { background: #fff; color: var(--primary); }
-    .btn-white:hover { background: #eff6ff; }
+    .btn-white:hover { background: #eef2ff; }
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
     .btn-outline:hover { background: #f1f5f9; }
+    .btn-lock { background: #f1f5f9; border: 1px dashed #94a3b8; color: #475569; font-size: 0.85rem; }
+    .btn-lock:hover { background: #e2e8f0; color: var(--primary); border-color: var(--primary); }
     .btn-danger { background: #fee2e2; color: #dc2626; font-size: 0.8rem; padding: 0.35rem 0.7rem; }
     
     input, select { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; background: #fff; }
@@ -42,7 +45,14 @@
 
     /* 書籍卡片網格 */
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; padding-bottom: 3rem; }
-    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    
+    /* 封面圖片區 */
+    .cover-wrapper { width: 100%; height: 200px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--border); }
+    .cover-img { width: 100%; height: 100%; object-fit: cover; }
+    .cover-placeholder { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 0.85rem; gap: 0.35rem; }
+    
+    .card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
     .dept-tag { font-size: 0.8rem; font-weight: 600; color: var(--primary); }
     .badge { font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 99px; font-weight: 600; }
@@ -51,15 +61,21 @@
     .badge-free { background: #e0f2fe; color: #0369a1; }
     .book-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem; }
     .book-meta { font-size: 0.88rem; color: var(--muted); margin-bottom: 0.25rem; }
-    .card-footer { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
-    .price { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+    .card-footer { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+    .price { font-size: 1.1rem; font-weight: 700; color: var(--primary); white-space: nowrap; }
+
+    /* 圖片上傳預覽 */
+    .preview-box { margin-top: 0.5rem; width: 100%; height: 150px; border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f8fafc; }
+    .preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
     /* 原生彈窗 (Dialog) */
-    dialog { border: none; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 440px; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    dialog { border: none; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 460px; max-height: 90vh; overflow-y: auto; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
     dialog::backdrop { background: rgba(15, 23, 42, 0.5); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
     .form-group { margin-bottom: 0.85rem; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; }
+    .btn-row { display: flex; gap: 0.5rem; margin-top: 1rem; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -75,12 +91,13 @@
   <main class="container">
     <!-- 搜尋篩選列 -->
     <section class="filter-box">
-      <input type="text" id="search-input" placeholder="搜尋書名、課程名稱或授課教授..." />
+      <input type="text" id="search-input" placeholder="搜尋書名、ISBN、課程名稱或授課教授..." />
       <select id="dept-filter">
         <option value="">所有系所 / 分類</option>
         <option value="通識課程">通識課程</option>
         <option value="資訊工程學系">資訊工程學系</option>
         <option value="電機工程學系">電機工程學系</option>
+        <option value="資訊管理學系">資訊管理學系</option>
         <option value="企業管理學系">企業管理學系</option>
         <option value="其他系所">其他系所</option>
       </select>
@@ -94,29 +111,28 @@
 
     <!-- 書籍列表 -->
     <section id="books-grid" class="grid">
-      <p style="color: var(--muted);">載入資料中...</p>
+      <p style="color: var(--muted);">載入書籍資料中...</p>
     </section>
   </main>
 
-  <!-- 登入彈窗 -->
+  <!-- 登入 / 註冊彈窗 -->
   <dialog id="login-dialog">
     <div class="modal-header">
-      <h3>學校信箱驗證登入</h3>
+      <h3>學生帳號登入 / 註冊</h3>
       <button class="btn-outline" onclick="document.getElementById('login-dialog').close()">✕</button>
     </div>
-    <div id="step-email">
-      <div class="form-group">
-        <label>請輸入學校信箱（限 .edu.tw）</label>
-        <input type="email" id="login-email" placeholder="s1101234@gm.school.edu.tw" />
-      </div>
-      <button class="btn-primary" style="width: 100%;" onclick="sendOtp()">寄送 6 位數驗證碼</button>
+    <p class="hint" style="margin-bottom: 1rem;">為保護同學隱私，須登入大專院校信箱 (.edu.tw) 後才能查看聯絡方式與刊登書籍。</p>
+    <div class="form-group">
+      <label>學校信箱 (.edu.tw)</label>
+      <input type="email" id="auth-email" placeholder="例如：s1101234@nkust.edu.tw" />
     </div>
-    <div id="step-otp" class="hidden">
-      <div class="form-group">
-        <label>請輸入信箱收到的 6 位數驗證碼</label>
-        <input type="text" id="login-otp" placeholder="123456" maxlength="6" />
-      </div>
-      <button class="btn-primary" style="width: 100%;" onclick="verifyOtp()">確認登入</button>
+    <div class="form-group">
+      <label>密碼（至少 6 位數）</label>
+      <input type="password" id="auth-password" placeholder="請輸入密碼" />
+    </div>
+    <div class="btn-row">
+      <button id="btn-login" class="btn-primary" style="flex: 1;" onclick="handleAuth('login')">登入</button>
+      <button id="btn-register" class="btn-outline" style="flex: 1;" onclick="handleAuth('register')">註冊新帳號</button>
     </div>
   </dialog>
 
@@ -128,6 +144,11 @@
     </div>
     <form id="post-form" onsubmit="submitBook(event)">
       <div class="form-group">
+        <label>書籍封面照片（選填，系統自動壓縮儲存）</label>
+        <input type="file" id="book-cover" accept="image/*" onchange="previewCover(event)" />
+        <div id="cover-preview" class="preview-box hidden"></div>
+      </div>
+      <div class="form-group">
         <label>交易類型 *</label>
         <select id="book-type" required>
           <option value="sell">出售</option>
@@ -138,6 +159,10 @@
       <div class="form-group">
         <label>書名 *</label>
         <input type="text" id="book-title" required placeholder="例如：Calculus (9th Edition)" />
+      </div>
+      <div class="form-group">
+        <label>ISBN 書號（選填）</label>
+        <input type="text" id="book-isbn" placeholder="例如：9789861234567" />
       </div>
       <div class="form-group">
         <label>適用課程名稱 *</label>
@@ -153,6 +178,7 @@
           <option value="通識課程">通識課程</option>
           <option value="資訊工程學系">資訊工程學系</option>
           <option value="電機工程學系">電機工程學系</option>
+          <option value="資訊管理學系">資訊管理學系</option>
           <option value="企業管理學系">企業管理學系</option>
           <option value="其他系所">其他系所</option>
         </select>
@@ -163,166 +189,303 @@
       </div>
       <div class="form-group">
         <label>書況說明</label>
-        <input type="text" id="book-condition" placeholder="例如：八成新、有少許鉛筆筆記" />
+        <select id="book-condition">
+          <option value="全新未拆（附封膜）">全新未拆（附封膜）</option>
+          <option value="近全新（僅翻閱，無任何畫記）">近全新（僅翻閱，無任何畫記）</option>
+          <option value="九成新（極少量鉛筆畫記，可擦除）">九成新（極少量鉛筆畫記，可擦除）</option>
+          <option value="八成新（有重點螢光筆 / 原子筆筆記）" selected>八成新（有重點螢光筆 / 原子筆筆記）</option>
+          <option value="七成新（重點筆記豐富，適合考前衝刺）">七成新（重點筆記豐富，適合考前衝刺）</option>
+          <option value="六成新以下（封面微損或有使用痕跡，內頁完整）">六成新以下（封面微損或有使用痕跡，內頁完整）</option>
+        </select>
       </div>
       <div class="form-group">
-        <label>聯絡方式（LINE ID 或 IG 帳號）*</label>
-        <input type="text" id="book-contact" required placeholder="例如：LINE: student123" />
+        <label>聯絡方式（僅限已登入本校學生查看）*</label>
+        <input type="text" id="book-contact" required placeholder="例如：LINE ID: student123" />
       </div>
-      <button type="submit" class="btn-primary" style="width: 100%;">送出刊登</button>
+      <button type="submit" id="btn-submit-book" class="btn-primary" style="width: 100%;">確認上架</button>
     </form>
   </dialog>
 
   <script>
     // ==========================================
-    // 1. Supabase 專案設定（已修正語法）
+    // 1. Firebase 專案設定（純原生 REST API，零外部套件）
     // ==========================================
-    const SUPABASE_URL ='https://jtvbbpopoiyxyrtouirw.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_BKzjQpQC-Mz2jaPhi2WsmQ_p4oKfReI';
+    const API_KEY = "AIzaSyDBIPy_zFtZYvUaykEWhIoJQZ5MhqjBbgE";
+    const PROJECT_ID = "books-be49f";
+    const FIRESTORE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-    let session = JSON.parse(localStorage.getItem('sb_session') || 'null');
+    let currentUser = JSON.parse(localStorage.getItem('campus_book_user') || 'null');
     let allBooks = [];
 
-    async function sbFetch(path, options = {}) {
+    // Token 自動續期機制（避免 1 小時後過期失敗）
+    async function refreshFirebaseToken() {
+      if (!currentUser?.refreshToken) return false;
+      try {
+        const res = await fetch(`https://securetoken.googleapis.com/v1/token?key=${API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `grant_type=refresh_token&refresh_token=${encodeURIComponent(currentUser.refreshToken)}`
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        currentUser.idToken = data.id_token;
+        currentUser.refreshToken = data.refresh_token;
+        localStorage.setItem('campus_book_user', JSON.stringify(currentUser));
+        return true;
+      } catch {
+        logout();
+        return false;
+      }
+    }
+
+    async function firestoreFetch(url, options = {}, retry = true) {
       const headers = {
-        'apikey': SUPABASE_KEY,
         'Content-Type': 'application/json',
-        ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        ...(currentUser?.idToken ? { 'Authorization': `Bearer ${currentUser.idToken}` } : {}),
         ...(options.headers || {})
       };
-      const res = await fetch(`${SUPABASE_URL}${path}`, { ...options, headers });
-      if (res.status === 204) return null;
+      const res = await fetch(url, { ...options, headers });
+
+      if ((res.status === 401 || res.status === 403) && retry && currentUser?.refreshToken) {
+        const ok = await refreshFirebaseToken();
+        if (ok) return firestoreFetch(url, options, false);
+      }
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.msg || data.message || data.error_description || '請求失敗');
+      if (!res.ok) throw new Error(data.error?.message || '操作失敗');
       return data;
     }
 
     // ==========================================
-    // 2. 身份驗證（學校信箱 OTP 登入）
+    // 2. 封面照片預覽與壓縮（免 Firebase Storage，100% 免費）
+    // ==========================================
+    function previewCover(event) {
+      const file = event.target.files[0];
+      const box = document.getElementById('cover-preview');
+      if (!file) {
+        box.classList.add('hidden');
+        box.innerHTML = '';
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        box.innerHTML = `<img src="${e.target.result}" alt="封面預覽" />`;
+        box.classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function compressToBase64(file, maxWidth = 600, quality = 0.7) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let { width, height } = img;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(dataUrl);
+        };
+        img.onerror = () => reject(new Error('無法讀取圖片檔案'));
+        img.src = url;
+      });
+    }
+
+    // ==========================================
+    // 3. 身份驗證（學校信箱 .edu.tw 登入 / 註冊）
     // ==========================================
     function renderNav() {
       const nav = document.getElementById('nav-actions');
-      if (session?.user) {
+      if (currentUser) {
         nav.innerHTML = `
-          <span style="font-size: 0.85rem; margin-right: 0.5rem;">${session.user.email}</span>
-          <button class="btn-white" onclick="document.getElementById('post-dialog').showModal()">+ 刊登書籍</button>
+          <span style="font-size: 0.85rem; margin-right: 0.5rem;">${escapeHtml(currentUser.email)}</span>
+          <button class="btn-white" onclick="openPostModal()">+ 刊登書籍</button>
           <button class="btn-outline" style="color: #fff; border-color: rgba(255,255,255,0.4);" onclick="logout()">登出</button>
         `;
       } else {
         nav.innerHTML = `
-          <button class="btn-white" onclick="openLogin()">學校信箱登入 / 刊登</button>
+          <button class="btn-white" onclick="openLogin()">登入 / 註冊</button>
         `;
       }
     }
 
     function openLogin() {
-      document.getElementById('step-email').classList.remove('hidden');
-      document.getElementById('step-otp').classList.add('hidden');
       document.getElementById('login-dialog').showModal();
     }
 
-    async function sendOtp() {
-      const email = document.getElementById('login-email').value.trim();
-      if (!email.endsWith('.edu.tw')) {
-        alert('請輸入有效的學校信箱（結尾須為 .edu.tw）');
-        return;
-      }
-      try {
-        await sbFetch('/auth/v1/otp', {
-          method: 'POST',
-          body: JSON.stringify({ email })
-        });
-        alert('驗證碼已寄出，請至學校信箱收信！');
-        document.getElementById('step-email').classList.add('hidden');
-        document.getElementById('step-otp').classList.remove('hidden');
-      } catch (err) {
-        alert('寄送失敗：' + err.message);
-      }
+    function openPostModal() {
+      document.getElementById('post-form').reset();
+      const box = document.getElementById('cover-preview');
+      box.classList.add('hidden');
+      box.innerHTML = '';
+      document.getElementById('post-dialog').showModal();
     }
 
-    async function verifyOtp() {
-      const email = document.getElementById('login-email').value.trim();
-      const token = document.getElementById('login-otp').value.trim();
+    async function handleAuth(mode) {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+
+      if (mode === 'register' && !email.endsWith('.edu.tw')) {
+        alert("請使用台灣大專院校信箱 (.edu.tw) 註冊！");
+        return;
+      }
+
+      const endpoint = mode === 'register' ? 'signUp' : 'signInWithPassword';
+      const btn = document.getElementById(mode === 'register' ? 'btn-register' : 'btn-login');
+      const origText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '處理中...';
+
       try {
-        const data = await sbFetch('/auth/v1/verify', {
+        const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:${endpoint}?key=${API_KEY}`, {
           method: 'POST',
-          body: JSON.stringify({ email, token, type: 'email' })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, returnSecureToken: true })
         });
-        session = data;
-        localStorage.setItem('sb_session', JSON.stringify(session));
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || "帳號或密碼錯誤");
+
+        currentUser = {
+          uid: data.localId,
+          email: data.email,
+          idToken: data.idToken,
+          refreshToken: data.refreshToken
+        };
+        localStorage.setItem('campus_book_user', JSON.stringify(currentUser));
         document.getElementById('login-dialog').close();
         renderNav();
-        renderBooks(allBooks);
+        filterBooks();
       } catch (err) {
-        alert('驗證失敗：' + err.message);
+        alert((mode === 'register' ? '註冊失敗：' : '登入失敗：') + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
       }
     }
 
     function logout() {
-      session = null;
-      localStorage.removeItem('sb_session');
+      currentUser = null;
+      localStorage.removeItem('campus_book_user');
       renderNav();
-      renderBooks(allBooks);
+      filterBooks();
     }
 
     // ==========================================
-    // 3. 書籍讀取、新增與下架（REST API）
+    // 4. 書籍讀取、上架與下架（Firestore REST API）
     // ==========================================
     async function loadBooks() {
       try {
-        allBooks = await sbFetch('/rest/v1/books?is_sold=eq.false&order=created_at.desc');
+        const res = await fetch(`${FIRESTORE_URL}/books?pageSize=300`);
+        const data = await res.json();
+        if (!data.documents) {
+          allBooks = [];
+        } else {
+          allBooks = data.documents.map(doc => {
+            const f = doc.fields || {};
+            return {
+              id: doc.name.split('/').pop(),
+              type: f.type?.stringValue || 'sell',
+              title: f.title?.stringValue || '',
+              isbn: f.isbn?.stringValue || '',
+              course: f.course?.stringValue || '',
+              professor: f.professor?.stringValue || '',
+              department: f.department?.stringValue || '其他系所',
+              price: Number(f.price?.integerValue || f.price?.doubleValue || 0),
+              condition: f.condition?.stringValue || '',
+              contact: f.contact?.stringValue || '',
+              imageData: f.imageData?.stringValue || '',
+              status: f.status?.stringValue || 'available',
+              ownerId: f.ownerId?.stringValue || '',
+              createdAt: Number(f.createdAt?.integerValue || 0)
+            };
+          }).filter(b => b.status === 'available');
+          allBooks.sort((a, b) => b.createdAt - a.createdAt);
+        }
         filterBooks();
       } catch (err) {
-        document.getElementById('books-grid').innerHTML = `<p style="color:red;">載入失敗：${err.message}</p>`;
+        document.getElementById('books-grid').innerHTML = `<p style="color:red;">載入失敗：${escapeHtml(err.message)}</p>`;
       }
     }
 
     async function submitBook(e) {
       e.preventDefault();
-      if (!session?.user) return alert('請先登入');
+      if (!currentUser) return alert("請先登入！");
 
-      const payload = {
-        user_id: session.user.id,
-        type: document.getElementById('book-type').value,
-        title: document.getElementById('book-title').value.trim(),
-        course_name: document.getElementById('book-course').value.trim(),
-        professor: document.getElementById('book-prof').value.trim(),
-        department: document.getElementById('book-dept').value,
-        price: Number(document.getElementById('book-price').value),
-        condition: document.getElementById('book-condition').value.trim(),
-        contact_info: document.getElementById('book-contact').value.trim()
-      };
+      const btn = document.getElementById('btn-submit-book');
+      btn.disabled = true;
 
       try {
-        await sbFetch('/rest/v1/books', {
+        let imageData = "";
+        const fileInput = document.getElementById('book-cover');
+        if (fileInput.files.length > 0) {
+          btn.textContent = "正在壓縮封面照片...";
+          imageData = await compressToBase64(fileInput.files[0]);
+        }
+
+        btn.textContent = "正在上架書籍...";
+        const payload = {
+          fields: {
+            type: { stringValue: document.getElementById('book-type').value },
+            title: { stringValue: document.getElementById('book-title').value.trim() },
+            isbn: { stringValue: document.getElementById('book-isbn').value.trim() },
+            course: { stringValue: document.getElementById('book-course').value.trim() },
+            professor: { stringValue: document.getElementById('book-prof').value.trim() },
+            department: { stringValue: document.getElementById('book-dept').value },
+            price: { integerValue: String(Number(document.getElementById('book-price').value)) },
+            condition: { stringValue: document.getElementById('book-condition').value },
+            contact: { stringValue: document.getElementById('book-contact').value.trim() },
+            imageData: { stringValue: imageData },
+            status: { stringValue: "available" },
+            ownerId: { stringValue: currentUser.uid },
+            ownerEmail: { stringValue: currentUser.email },
+            createdAt: { integerValue: String(Date.now()) }
+          }
+        };
+
+        await firestoreFetch(`${FIRESTORE_URL}/books`, {
           method: 'POST',
-          headers: { 'Prefer': 'return=minimal' },
           body: JSON.stringify(payload)
         });
-        document.getElementById('post-form').reset();
+
         document.getElementById('post-dialog').close();
+        alert("書籍已成功上架！");
         await loadBooks();
       } catch (err) {
-        alert('刊登失敗（若憑證過期請重新登入）：' + err.message);
+        alert("上架失敗：" + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "確認上架";
       }
     }
 
-    async function markAsSold(bookId) {
-      if (!confirm('確定要將此書籍標記為「已售出 / 下架」嗎？')) return;
+    async function takeDownBook(bookId) {
+      if (!currentUser) return alert("請先登入！");
+      if (!confirm("確定要下架這本書嗎？下架後將不再顯示於書單中。")) return;
+
       try {
-        await sbFetch(`/rest/v1/books?id=eq.${bookId}`, {
+        await firestoreFetch(`${FIRESTORE_URL}/books/${bookId}?updateMask.fieldPaths=status`, {
           method: 'PATCH',
-          headers: { 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ is_sold: true })
+          body: JSON.stringify({
+            fields: { status: { stringValue: "sold" } }
+          })
         });
+        alert("書籍已成功下架！");
         await loadBooks();
       } catch (err) {
-        alert('下架失敗：' + err.message);
+        alert("下架失敗：" + err.message);
       }
     }
 
     // ==========================================
-    // 4. 前端搜尋與畫面渲染
+    // 5. 搜尋篩選與畫面渲染（含隱私保護邏輯）
     // ==========================================
     function renderBooks(books) {
       const grid = document.getElementById('books-grid');
@@ -337,25 +500,40 @@
         free: { text: '贈送', cls: 'badge-free' }
       };
 
+      const isLoggedIn = Boolean(currentUser);
+
       grid.innerHTML = books.map(b => {
         const badge = typeMap[b.type] || { text: b.type, cls: '' };
-        const isOwner = session?.user?.id === b.user_id;
+        const isOwner = isLoggedIn && currentUser.uid === b.ownerId;
+
+        const coverHtml = b.imageData
+          ? `<img class="cover-img" src="${b.imageData}" alt="${escapeHtml(b.title)}" loading="lazy" />`
+          : `<div class="cover-placeholder"><span style="font-size:2rem;">📘</span><span>未提供封面照片</span></div>`;
+
+        const contactHtml = isLoggedIn
+          ? `<button class="btn-outline" data-contact="${escapeHtml(b.contact)}" onclick="copyText(this.dataset.contact)">複製聯絡資訊</button>`
+          : `<button class="btn-lock" onclick="openLogin()">🔒 登入查看聯絡方式</button>`;
+
         return `
           <article class="card">
-            <div>
-              <div class="card-header">
-                <span class="dept-tag">${escapeHtml(b.department)}</span>
-                <span class="badge ${badge.cls}">${badge.text}</span>
+            <div class="cover-wrapper">${coverHtml}</div>
+            <div class="card-body">
+              <div>
+                <div class="card-header">
+                  <span class="dept-tag">${escapeHtml(b.department)}</span>
+                  <span class="badge ${badge.cls}">${badge.text}</span>
+                </div>
+                <h2 class="book-title">${escapeHtml(b.title)}</h2>
+                ${b.isbn ? `<p class="book-meta" style="font-family:monospace;font-size:0.78rem;">🔢 ISBN：${escapeHtml(b.isbn)}</p>` : ''}
+                <p class="book-meta">📖 課程：${escapeHtml(b.course)} ${b.professor ? `(${escapeHtml(b.professor)})` : ''}</p>
+                <p class="book-meta">✨ 書況：${escapeHtml(b.condition || '未註明')}</p>
               </div>
-              <h2 class="book-title">${escapeHtml(b.title)}</h2>
-              <p class="book-meta">📖 課程：${escapeHtml(b.course_name)} ${b.professor ? `(${escapeHtml(b.professor)})` : ''}</p>
-              <p class="book-meta">📝 書況：${escapeHtml(b.condition || '未註明')}</p>
-            </div>
-            <div class="card-footer">
-              <span class="price">${b.type === 'free' ? '免費' : `NT$ ${b.price}`}</span>
-              <div style="display:flex; gap:0.4rem;">
-                ${isOwner ? `<button class="btn-danger" onclick="markAsSold('${b.id}')">下架</button>` : ''}
-                <button class="btn-outline" onclick="copyText('${escapeHtml(b.contact_info)}')">複製聯絡資訊</button>
+              <div class="card-footer">
+                <span class="price">${b.type === 'free' || b.price === 0 ? '免費' : `NT$ ${b.price}`}</span>
+                <div style="display:flex; gap:0.4rem;">
+                  ${isOwner ? `<button class="btn-danger" onclick="takeDownBook('${b.id}')">下架</button>` : ''}
+                  ${contactHtml}
+                </div>
               </div>
             </div>
           </article>
@@ -364,20 +542,24 @@
     }
 
     function filterBooks() {
-      const kw = document.getElementById('search-input').value.toLowerCase();
+      const kw = document.getElementById('search-input').value.toLowerCase().trim();
+      const cleanKw = kw.replace(/-/g, '');
       const dept = document.getElementById('dept-filter').value;
       const type = document.getElementById('type-filter').value;
 
       const filtered = allBooks.filter(b => {
+        const cleanIsbn = (b.isbn || '').toLowerCase().replace(/-/g, '');
         const matchKw = b.title.toLowerCase().includes(kw) ||
-                        b.course_name.toLowerCase().includes(kw) ||
-                        (b.professor && b.professor.toLowerCase().includes(kw));
+                        b.course.toLowerCase().includes(kw) ||
+                        (b.professor && b.professor.toLowerCase().includes(kw)) ||
+                        (cleanKw && cleanIsbn.includes(cleanKw));
         return matchKw && (!dept || b.department === dept) && (!type || b.type === type);
       });
       renderBooks(filtered);
     }
 
     function copyText(text) {
+      if (!text) return alert('賣家未留下聯絡資訊');
       navigator.clipboard.writeText(text);
       alert('已複製聯絡資訊：' + text);
     }
