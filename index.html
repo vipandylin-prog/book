@@ -24,17 +24,21 @@
     .nav-title { font-size: 1.25rem; font-weight: 700; }
     
     /* 按鈕與輸入框 */
-    button { cursor: pointer; border: none; border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 600; transition: 0.2s; }
+    button { cursor: pointer; border: none; border-radius: 6px; padding: 0.5rem 0.9rem; font-size: 0.88rem; font-weight: 600; transition: 0.2s; }
     button:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-white { background: #fff; color: var(--primary); }
     .btn-white:hover { background: #eef2ff; }
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-primary:hover { background: var(--primary-hover); }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-success:hover { background: #15803d; }
+    .btn-warning { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+    .btn-warning:hover { background: #fde68a; }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
     .btn-outline:hover { background: #f1f5f9; }
     .btn-lock { background: #f1f5f9; border: 1px dashed #94a3b8; color: #475569; font-size: 0.85rem; }
     .btn-lock:hover { background: #e2e8f0; color: var(--primary); border-color: var(--primary); }
-    .btn-danger { background: #fee2e2; color: #dc2626; font-size: 0.8rem; padding: 0.35rem 0.7rem; }
+    .btn-danger { background: #fee2e2; color: #dc2626; font-size: 0.82rem; padding: 0.4rem 0.7rem; }
     
     input, select { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; background: #fff; }
     input:focus, select:focus { outline: 2px solid var(--primary); border-color: transparent; }
@@ -44,13 +48,14 @@
     @media (max-width: 768px) { .filter-box { grid-template-columns: 1fr; } }
 
     /* 書籍卡片網格 */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; padding-bottom: 3rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 1.25rem; padding-bottom: 3rem; }
     .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
     
     /* 封面圖片區 */
-    .cover-wrapper { width: 100%; height: 200px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--border); }
+    .cover-wrapper { width: 100%; height: 200px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--border); position: relative; }
     .cover-img { width: 100%; height: 100%; object-fit: cover; }
     .cover-placeholder { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 0.85rem; gap: 0.35rem; }
+    .reserved-banner { position: absolute; top: 10px; right: 10px; background: rgba(217, 119, 6, 0.95); color: #fff; padding: 0.25rem 0.65rem; border-radius: 99px; font-size: 0.78rem; font-weight: 700; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
     
     .card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
     .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
@@ -61,17 +66,28 @@
     .badge-free { background: #e0f2fe; color: #0369a1; }
     .book-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.35rem; }
     .book-meta { font-size: 0.88rem; color: var(--muted); margin-bottom: 0.25rem; }
-    .card-footer { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+    .reserved-info { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 0.82rem; padding: 0.45rem 0.65rem; border-radius: 6px; margin-top: 0.5rem; }
+    
+    .card-footer { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     .price { font-size: 1.1rem; font-weight: 700; color: var(--primary); white-space: nowrap; }
+    .action-group { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
     /* 圖片上傳預覽 */
     .preview-box { margin-top: 0.5rem; width: 100%; height: 150px; border: 1px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f8fafc; }
     .preview-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
+    /* 站內聊天室介面 */
+    .chat-box { height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; background: #f8fafc; display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 0.85rem; }
+    .msg-item { max-width: 82%; padding: 0.55rem 0.8rem; border-radius: 10px; font-size: 0.9rem; word-break: break-word; }
+    .msg-mine { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 2px; }
+    .msg-other { align-self: flex-start; background: #fff; border: 1px solid var(--border); color: var(--text); border-bottom-left-radius: 2px; }
+    .msg-meta { font-size: 0.72rem; opacity: 0.75; margin-bottom: 0.2rem; }
+    .chat-input-row { display: flex; gap: 0.5rem; }
+
     /* 原生彈窗 (Dialog) */
-    dialog { border: none; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 460px; max-height: 90vh; overflow-y: auto; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+    dialog { border: none; border-radius: 12px; padding: 1.5rem; width: 92%; max-width: 480px; max-height: 90vh; overflow-y: auto; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
     dialog::backdrop { background: rgba(15, 23, 42, 0.5); }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 0.5rem; }
     .form-group { margin-bottom: 0.85rem; }
     .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
     .hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.25rem; }
@@ -121,7 +137,7 @@
       <h3>學生帳號登入 / 註冊</h3>
       <button class="btn-outline" onclick="document.getElementById('login-dialog').close()">✕</button>
     </div>
-    <p class="hint" style="margin-bottom: 1rem;">為保護同學隱私，須登入大專院校信箱 (.edu.tw) 後才能查看聯絡方式與刊登書籍。</p>
+    <p class="hint" style="margin-bottom: 1rem;">為保護同學隱私，須登入大專院校信箱 (.edu.tw) 後才能預約書籍與在站內聯絡賣家。</p>
     <div class="form-group">
       <label>學校信箱 (.edu.tw)</label>
       <input type="email" id="auth-email" placeholder="例如：s1101234@nkust.edu.tw" />
@@ -199,10 +215,28 @@
         </select>
       </div>
       <div class="form-group">
-        <label>聯絡方式（僅限已登入本校學生查看）*</label>
-        <input type="text" id="book-contact" required placeholder="例如：LINE ID: student123" />
+        <label>面交地點或備註（選填）</label>
+        <input type="text" id="book-note" placeholder="例如：建工校區圖書館前、平日中午可面交" />
       </div>
       <button type="submit" id="btn-submit-book" class="btn-primary" style="width: 100%;">確認上架</button>
+    </form>
+  </dialog>
+
+  <!-- 站內聯絡對話彈窗 -->
+  <dialog id="chat-dialog">
+    <div class="modal-header">
+      <div>
+        <h3 id="chat-book-title" style="font-size: 1.05rem;">站內聯絡</h3>
+        <p id="chat-sub-info" class="hint"></p>
+      </div>
+      <button class="btn-outline" onclick="closeChatModal()">✕</button>
+    </div>
+    <div id="chat-messages" class="chat-box">
+      <p style="color: var(--muted); text-align: center; margin-top: 2rem;">載入訊息中...</p>
+    </div>
+    <form class="chat-input-row" onsubmit="sendChatMessage(event)">
+      <input type="text" id="chat-input" placeholder="輸入訊息約面交時間或地點..." required autocomplete="off" />
+      <button type="submit" id="btn-send-msg" class="btn-primary" style="white-space: nowrap;">傳送</button>
     </form>
   </dialog>
 
@@ -216,8 +250,10 @@
 
     let currentUser = JSON.parse(localStorage.getItem('campus_book_user') || 'null');
     let allBooks = [];
+    let activeChatBook = null;
+    let chatPollTimer = null;
 
-    // Token 自動續期機制（避免 1 小時後過期失敗）
+    // Token 自動續期機制
     async function refreshFirebaseToken() {
       if (!currentUser?.refreshToken) return false;
       try {
@@ -257,7 +293,7 @@
     }
 
     // ==========================================
-    // 2. 封面照片預覽與壓縮（免 Firebase Storage，100% 免費）
+    // 2. 封面照片預覽與壓縮（免 Firebase Storage）
     // ==========================================
     function previewCover(event) {
       const file = event.target.files[0];
@@ -291,8 +327,7 @@
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', quality);
-          resolve(dataUrl);
+          resolve(canvas.toDataURL('image/jpeg', quality));
         };
         img.onerror = () => reject(new Error('無法讀取圖片檔案'));
         img.src = url;
@@ -379,7 +414,7 @@
     }
 
     // ==========================================
-    // 4. 書籍讀取、上架與下架（Firestore REST API）
+    // 4. 書籍讀取、上架、預約與下架（完全對齊 Firestore Rules）
     // ==========================================
     async function loadBooks() {
       try {
@@ -400,13 +435,17 @@
               department: f.department?.stringValue || '其他系所',
               price: Number(f.price?.integerValue || f.price?.doubleValue || 0),
               condition: f.condition?.stringValue || '',
-              contact: f.contact?.stringValue || '',
+              note: f.note?.stringValue || '',
               imageData: f.imageData?.stringValue || '',
               status: f.status?.stringValue || 'available',
               ownerId: f.ownerId?.stringValue || '',
+              ownerEmail: f.ownerEmail?.stringValue || '',
+              buyerId: f.buyerId?.stringValue || '',
+              buyerEmail: f.buyerEmail?.stringValue || '',
+              messages: f.messages?.stringValue || '[]',
               createdAt: Number(f.createdAt?.integerValue || 0)
             };
-          }).filter(b => b.status === 'available');
+          }).filter(b => b.status === 'available' || b.status === 'reserved');
           allBooks.sort((a, b) => b.createdAt - a.createdAt);
         }
         filterBooks();
@@ -441,11 +480,13 @@
             department: { stringValue: document.getElementById('book-dept').value },
             price: { integerValue: String(Number(document.getElementById('book-price').value)) },
             condition: { stringValue: document.getElementById('book-condition').value },
-            contact: { stringValue: document.getElementById('book-contact').value.trim() },
+            note: { stringValue: document.getElementById('book-note').value.trim() },
             imageData: { stringValue: imageData },
             status: { stringValue: "available" },
             ownerId: { stringValue: currentUser.uid },
             ownerEmail: { stringValue: currentUser.email },
+            buyerId: { stringValue: "" },
+            buyerEmail: { stringValue: "" },
             createdAt: { integerValue: String(Date.now()) }
           }
         };
@@ -466,9 +507,95 @@
       }
     }
 
+    // 買家一鍵預約（完全符合 Rules 情境 B：僅更新 status, buyerId, buyerEmail）
+    async function reserveBook(bookId) {
+      if (!currentUser) return openLogin();
+      const book = allBooks.find(b => b.id === bookId);
+      if (!book) return;
+
+      if (!confirm(`確定要預約「${book.title}」嗎？預約後將自動為你開啟站內對話聯絡賣家。`)) return;
+
+      try {
+        await firestoreFetch(
+          `${FIRESTORE_URL}/books/${bookId}?updateMask.fieldPaths=status&updateMask.fieldPaths=buyerId&updateMask.fieldPaths=buyerEmail`,
+          {
+            method: 'PATCH',
+            body: JSON.stringify({
+              fields: {
+                status: { stringValue: "reserved" },
+                buyerId: { stringValue: currentUser.uid },
+                buyerEmail: { stringValue: currentUser.email }
+              }
+            })
+          }
+        );
+
+        // 自動發送第一則預約通知訊息給賣家
+        await postMessageToFirestore(bookId, `您好，我已預約這本「${book.title}」，請問什麼時候方便面交？`);
+        await loadBooks();
+        openChatModal(bookId);
+      } catch (err) {
+        alert("預約失敗（可能已被其他同學搶先預約）：" + err.message);
+        await loadBooks();
+      }
+    }
+
+    // 原預約買家取消預約（完全符合 Rules 情境 C）
+    async function cancelReservation(bookId) {
+      if (!currentUser) return;
+      if (!confirm("確定要取消預約嗎？取消後其他同學將可以重新預約此書。")) return;
+
+      try {
+        await firestoreFetch(
+          `${FIRESTORE_URL}/books/${bookId}?updateMask.fieldPaths=status&updateMask.fieldPaths=buyerId&updateMask.fieldPaths=buyerEmail`,
+          {
+            method: 'PATCH',
+            body: JSON.stringify({
+              fields: {
+                status: { stringValue: "available" },
+                buyerId: { stringValue: "" },
+                buyerEmail: { stringValue: "" }
+              }
+            })
+          }
+        );
+        await postMessageToFirestore(bookId, `（系統通知：買家已取消預約）`);
+        alert("已取消預約！");
+        await loadBooks();
+      } catch (err) {
+        alert("取消預約失敗：" + err.message);
+      }
+    }
+
+    // 賣家重新開放預約（若買家爽約，賣家可恢復為 available，符合 Rules 情境 A）
+    async function resetBookStatus(bookId) {
+      if (!currentUser) return;
+      if (!confirm("確定要取消買家保留，將書籍重新開放給所有人預約嗎？")) return;
+
+      try {
+        await firestoreFetch(
+          `${FIRESTORE_URL}/books/${bookId}?updateMask.fieldPaths=status&updateMask.fieldPaths=buyerId&updateMask.fieldPaths=buyerEmail`,
+          {
+            method: 'PATCH',
+            body: JSON.stringify({
+              fields: {
+                status: { stringValue: "available" },
+                buyerId: { stringValue: "" },
+                buyerEmail: { stringValue: "" }
+              }
+            })
+          }
+        );
+        alert("書籍已重新開放預約！");
+        await loadBooks();
+      } catch (err) {
+        alert("操作失敗：" + err.message);
+      }
+    }
+
     async function takeDownBook(bookId) {
       if (!currentUser) return alert("請先登入！");
-      if (!confirm("確定要下架這本書嗎？下架後將不再顯示於書單中。")) return;
+      if (!confirm("確定要下架 / 標記為已售出嗎？下架後將不再顯示於書單中。")) return;
 
       try {
         await firestoreFetch(`${FIRESTORE_URL}/books/${bookId}?updateMask.fieldPaths=status`, {
@@ -485,7 +612,115 @@
     }
 
     // ==========================================
-    // 5. 搜尋篩選與畫面渲染（含隱私保護邏輯）
+    // 5. 站內即時留言對話（直接在本網站聯絡賣家）
+    // ==========================================
+    async function openChatModal(bookId) {
+      if (!currentUser) return openLogin();
+      activeChatBook = allBooks.find(b => b.id === bookId);
+      if (!activeChatBook) return;
+
+      const isOwner = currentUser.uid === activeChatBook.ownerId;
+      document.getElementById('chat-book-title').textContent = `💬 ${activeChatBook.title}`;
+      document.getElementById('chat-sub-info').textContent = isOwner
+        ? (activeChatBook.buyerEmail ? `預約買家：${activeChatBook.buyerEmail}` : '目前尚無人預約，可在此回覆同學提問')
+        : `刊登同學：${activeChatBook.ownerEmail}`;
+
+      document.getElementById('chat-dialog').showModal();
+      await fetchChatMessages();
+
+      // 每 4 秒自動更新一次對話內容
+      clearInterval(chatPollTimer);
+      chatPollTimer = setInterval(fetchChatMessages, 4000);
+    }
+
+    function closeChatModal() {
+      clearInterval(chatPollTimer);
+      chatPollTimer = null;
+      activeChatBook = null;
+      document.getElementById('chat-dialog').close();
+    }
+
+    async function fetchChatMessages() {
+      if (!activeChatBook) return;
+      const box = document.getElementById('chat-messages');
+      try {
+        const res = await fetch(`${FIRESTORE_URL}/books/${activeChatBook.id}/messages?pageSize=100`);
+        const data = await res.json();
+        const msgs = (data.documents || []).map(doc => {
+          const f = doc.fields || {};
+          return {
+            senderId: f.senderId?.stringValue || '',
+            senderEmail: f.senderEmail?.stringValue || '同學',
+            text: f.text?.stringValue || '',
+            createdAt: Number(f.createdAt?.integerValue || 0)
+          };
+        }).sort((a, b) => a.createdAt - b.createdAt);
+
+        if (!msgs.length) {
+          box.innerHTML = `<p style="color: var(--muted); text-align: center; margin-top: 2rem; font-size: 0.88rem;">尚無對話紀錄，傳送第一則訊息開始約面交吧！</p>`;
+          return;
+        }
+
+        const shouldScroll = box.scrollTop + box.clientHeight >= box.scrollHeight - 40;
+        box.innerHTML = msgs.map(m => {
+          const isMine = m.senderId === currentUser?.uid;
+          const timeStr = new Date(m.createdAt).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+          const shortEmail = m.senderEmail.split('@')[0];
+          return `
+            <div class="msg-item ${isMine ? 'msg-mine' : 'msg-other'}">
+              <div class="msg-meta">${isMine ? '我' : escapeHtml(shortEmail)} · ${timeStr}</div>
+              <div>${escapeHtml(m.text)}</div>
+            </div>
+          `;
+        }).join('');
+
+        if (shouldScroll) box.scrollTop = box.scrollHeight;
+      } catch (err) {
+        box.innerHTML = `<p style="color: #dc2626; font-size: 0.85rem;">讀取對話失敗：${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    async function postMessageToFirestore(bookId, text) {
+      const payload = {
+        fields: {
+          senderId: { stringValue: currentUser.uid },
+          senderEmail: { stringValue: currentUser.email },
+          text: { stringValue: text },
+          createdAt: { integerValue: String(Date.now()) }
+        }
+      };
+      await firestoreFetch(`${FIRESTORE_URL}/books/${bookId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+    }
+
+    async function sendChatMessage(e) {
+      e.preventDefault();
+      if (!currentUser || !activeChatBook) return;
+
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const btn = document.getElementById('btn-send-msg');
+      btn.disabled = true;
+      try {
+        await postMessageToFirestore(activeChatBook.id, text);
+        input.value = '';
+        await fetchChatMessages();
+        const box = document.getElementById('chat-messages');
+        box.scrollTop = box.scrollHeight;
+      } catch (err) {
+        alert("訊息傳送失敗：" + err.message);
+      } finally {
+        btn.disabled = false;
+        input.focus();
+      }
+    }
+
+    // ==========================================
+    // 6. 搜尋篩選與畫面渲染
     // ==========================================
     function renderBooks(books) {
       const grid = document.getElementById('books-grid');
@@ -505,18 +740,54 @@
       grid.innerHTML = books.map(b => {
         const badge = typeMap[b.type] || { text: b.type, cls: '' };
         const isOwner = isLoggedIn && currentUser.uid === b.ownerId;
+        const isMyReservation = isLoggedIn && b.status === 'reserved' && currentUser.uid === b.buyerId;
+        const isReservedByOther = b.status === 'reserved' && !isOwner && !isMyReservation;
 
         const coverHtml = b.imageData
           ? `<img class="cover-img" src="${b.imageData}" alt="${escapeHtml(b.title)}" loading="lazy" />`
           : `<div class="cover-placeholder"><span style="font-size:2rem;">📘</span><span>未提供封面照片</span></div>`;
 
-        const contactHtml = isLoggedIn
-          ? `<button class="btn-outline" data-contact="${escapeHtml(b.contact)}" onclick="copyText(this.dataset.contact)">複製聯絡資訊</button>`
-          : `<button class="btn-lock" onclick="openLogin()">🔒 登入查看聯絡方式</button>`;
+        const reservedBanner = b.status === 'reserved'
+          ? `<span class="reserved-banner">⏳ 已預約保留中</span>`
+          : '';
+
+        let statusNoticeHtml = '';
+        if (isOwner && b.status === 'reserved') {
+          statusNoticeHtml = `<div class="reserved-info">🔔 已被 <strong>${escapeHtml(b.buyerEmail)}</strong> 預約，請點下方「站內聯絡」約面交</div>`;
+        } else if (isMyReservation) {
+          statusNoticeHtml = `<div class="reserved-info">✅ 你已成功預約此書，請點下方「站內聯絡」與賣家約面交</div>`;
+        }
+
+        // 操作按鈕區邏輯
+        let actionsHtml = '';
+        if (!isLoggedIn) {
+          actionsHtml = `<button class="btn-lock" onclick="openLogin()">🔒 登入預約與聯絡賣家</button>`;
+        } else if (isOwner) {
+          actionsHtml = `
+            <button class="btn-primary" onclick="openChatModal('${b.id}')">💬 站內聯絡</button>
+            ${b.status === 'reserved' ? `<button class="btn-outline" onclick="resetBookStatus('${b.id}')">釋出</button>` : ''}
+            <button class="btn-danger" onclick="takeDownBook('${b.id}')">下架</button>
+          `;
+        } else if (isMyReservation) {
+          actionsHtml = `
+            <button class="btn-primary" onclick="openChatModal('${b.id}')">💬 站內聯絡賣家</button>
+            <button class="btn-warning" onclick="cancelReservation('${b.id}')">取消預約</button>
+          `;
+        } else if (isReservedByOther) {
+          actionsHtml = `<button class="btn-outline" disabled>已被其他同學預約</button>`;
+        } else {
+          actionsHtml = `
+            <button class="btn-outline" onclick="openChatModal('${b.id}')">💬 提問</button>
+            <button class="btn-success" onclick="reserveBook('${b.id}')">📌 預約此書</button>
+          `;
+        }
 
         return `
           <article class="card">
-            <div class="cover-wrapper">${coverHtml}</div>
+            <div class="cover-wrapper">
+              ${coverHtml}
+              ${reservedBanner}
+            </div>
             <div class="card-body">
               <div>
                 <div class="card-header">
@@ -527,13 +798,12 @@
                 ${b.isbn ? `<p class="book-meta" style="font-family:monospace;font-size:0.78rem;">🔢 ISBN：${escapeHtml(b.isbn)}</p>` : ''}
                 <p class="book-meta">📖 課程：${escapeHtml(b.course)} ${b.professor ? `(${escapeHtml(b.professor)})` : ''}</p>
                 <p class="book-meta">✨ 書況：${escapeHtml(b.condition || '未註明')}</p>
+                ${b.note ? `<p class="book-meta">📍 備註：${escapeHtml(b.note)}</p>` : ''}
+                ${statusNoticeHtml}
               </div>
               <div class="card-footer">
                 <span class="price">${b.type === 'free' || b.price === 0 ? '免費' : `NT$ ${b.price}`}</span>
-                <div style="display:flex; gap:0.4rem;">
-                  ${isOwner ? `<button class="btn-danger" onclick="takeDownBook('${b.id}')">下架</button>` : ''}
-                  ${contactHtml}
-                </div>
+                <div class="action-group">${actionsHtml}</div>
               </div>
             </div>
           </article>
@@ -556,12 +826,6 @@
         return matchKw && (!dept || b.department === dept) && (!type || b.type === type);
       });
       renderBooks(filtered);
-    }
-
-    function copyText(text) {
-      if (!text) return alert('賣家未留下聯絡資訊');
-      navigator.clipboard.writeText(text);
-      alert('已複製聯絡資訊：' + text);
     }
 
     function escapeHtml(str) {
